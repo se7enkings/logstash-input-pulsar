@@ -78,6 +78,7 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
               event.set("[pulsar][key]", record.getKey)
             end
             logstash_queue << event
+            consumer.acknowledge(record)
           end
         end
       rescue => e
