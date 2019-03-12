@@ -39,7 +39,7 @@ At this point any modifications to the plugin code will be applied to this local
 
 #### 3.2 Run in an installed Logstash
 
-You can use the same **2.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
+You can use the same **3.1** method to run your plugin in an installed Logstash by editing its `Gemfile` and pointing the `:path` to your local plugin development directory or you can build the gem and install it using:
 
 - Build your plugin gem
 ```sh
