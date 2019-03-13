@@ -16,11 +16,15 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
   config :client_id, :validate => :string, :default => "logstash-client"
   config :consumer_threads, :validate => :number, :default => 1
   config :decorate_events, :validate => :boolean, :default => false
+  config :commit_async, :validate => :boolean, :default => false
 
+  
 
   public
   def register
+    logger.info("register logstash-input-pulsar")
     @runner_threads = []
+    @runner_pulsar_clients = Array.new
   end # def register
 
   public
@@ -33,8 +37,11 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
   # logstash 关闭回调
   public
   def stop
-    logger.info("Stop pulsar input !!!")
-    @runner_consumers.each { |c| c.close }
+    # logger.info("Stop pulsar input !!!")
+    # @runner_consumers.each { |c| c.close }
+    logger.info("Stopping pulsar client ------------ !!!")
+    @runner_pulsar_clients.each { |c| c.close }
+
   end
 
   public
@@ -49,13 +56,22 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
       clientBuilder = org.apache.pulsar.client.api.PulsarClient.builder()
       clientBuilder.serviceUrl(@service_url)
       client = clientBuilder.build
+      @runner_pulsar_clients.push(client)
+
       logger.info("topic:",:topic => @topics.to_java('java.lang.String'))
       subscriptionType = org.apache.pulsar.client.api.SubscriptionType
-      consumer = client.newConsumer.clone.topic(@topics.to_java('java.lang.String'))
-        .subscriptionName(@group_id)
+
+      consumerBuilder = client.newConsumer.clone
+      unless @topics_pattern.nil?
+        consumerBuilder.topicsPattern(@topics_pattern.to_java('java.lang.String'))
+      else
+        consumerBuilder.topic(@topics.to_java('java.lang.String')) 
+      end
+      consumer = consumerBuilder.subscriptionName(@group_id)
         .consumerName(client_id)
         .subscriptionType(subscriptionType::Shared)
         .subscribe();
+
     rescue => e
       logger.error("Unable to create pulsar consumer from given configuration",
                    :pulsar_error_message => e,
@@ -78,7 +94,12 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
               event.set("[pulsar][key]", record.getKey)
             end
             logstash_queue << event
-            consumer.acknowledge(record)
+            if commit_async
+              consumer.acknowledgeAsync(record)
+            else
+              consumer.acknowledge(record)
+            end
+            
           end
         end
       rescue => e
