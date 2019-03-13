@@ -1,0 +1,6 @@
+lib/com
+lib/javax
+vendor
+lib/log4j
+lib/org
+Gemfile.lock
