@@ -37,11 +37,13 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
   # logstash 关闭回调
   public
   def stop
-    # logger.info("Stop pulsar input !!!")
-    # @runner_consumers.each { |c| c.close }
-    logger.info("Stopping pulsar client ------------ !!!")
+    logger.info("Stop all pulsar consumer !")
+    @runner_consumers.each { |c| c.close }
+
+    logger.info("Stop all pulsar client  !!!")
     @runner_pulsar_clients.each { |c| c.close }
 
+    @runner_threads.each { |t| t.exit }
   end
 
   public
