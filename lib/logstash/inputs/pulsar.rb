@@ -10,13 +10,19 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
   default :codec, 'plain'
 
   config :service_url, :validate => :string
+
   config :topics, :validate => :array, :default => ["logstash"]
   config :topics_pattern, :validate => :string
+
   config :group_id, :validate => :string, :default => "logstash-group"
   config :client_id, :validate => :string, :default => "logstash-client"
+  config :subscription_type, :validate => :string, :default => "Shared"
   config :consumer_threads, :validate => :number, :default => 1
+
+
   config :decorate_events, :validate => :boolean, :default => false
   config :commit_async, :validate => :boolean, :default => false
+
 
   
 
@@ -61,7 +67,6 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
       @runner_pulsar_clients.push(client)
 
       logger.info("topic:",:topic => @topics.to_java('java.lang.String'))
-      subscriptionType = org.apache.pulsar.client.api.SubscriptionType
 
       consumerBuilder = client.newConsumer.clone
       unless @topics_pattern.nil?
@@ -69,9 +74,18 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
       else
         consumerBuilder.topic(@topics.to_java('java.lang.String')) 
       end
+
+      subscriptionType = org.apache.pulsar.client.api.SubscriptionType
+      if @subscription_type == "Exclusive"
+        consumerBuilder.subscriptionType(subscriptionType::Exclusive)
+      elsif @subscription_type == "Failover"
+        consumerBuilder.subscriptionType(subscriptionType::Failover)
+      else
+        consumerBuilder.subscriptionType(subscriptionType::Shared)
+      end
+
       consumer = consumerBuilder.subscriptionName(@group_id)
         .consumerName(client_id)
-        .subscriptionType(subscriptionType::Shared)
         .subscribe();
 
     rescue => e
