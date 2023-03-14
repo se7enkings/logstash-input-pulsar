@@ -10,6 +10,8 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
   default :codec, 'plain'
 
   config :service_url, :validate => :string
+  config :auth_plugin_class_name, :validate => :string
+  config :auth_params, :validate => :string
 
   config :topics, :validate => :array, :default => ["logstash"]
   config :topics_pattern, :validate => :string
@@ -63,6 +65,7 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
       logger.info("client - ", :client => client_id)
       clientBuilder = org.apache.pulsar.client.api.PulsarClient.builder()
       clientBuilder.serviceUrl(@service_url)
+      clientBuilder.authentication(org.apache.pulsar.client.api.AuthenticationFactory.create(@auth_plugin_class_name,@auth_params))
       client = clientBuilder.build
       @runner_pulsar_clients.push(client)
 
