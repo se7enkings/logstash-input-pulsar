@@ -36,15 +36,15 @@ pulsar without tls & token
 ```
 input{
   pulsar{
-    serviceUrl => "pulsar://127.0.0.1:6650"
+    service_url => "pulsar://127.0.0.1:6650"
     codec => "json"
     topics => [
         "persistent://public/default/topic1",
         "persistent://public/default/topic2"
     ]
-    subscriptionName => "my_consumer"
-    subscriptionType => "Shared"
-    subscriptionInitialPosition => "Earliest"
+    subscription_name => "my_consumer"
+    subscription_type => "Shared"
+    subscription_initial_position => "Earliest"
   }
 }
 ```
@@ -54,15 +54,15 @@ pulsar with token
 ```
 input{
   pulsar{
-    serviceUrl => "pulsar://127.0.0.1:6650"
+    service_url => "pulsar://127.0.0.1:6650"
     codec => "plain"
     topics => [
         "persistent://public/default/topic1",
         "persistent://public/default/topic2"
     ]
-    subscriptionName => "my_subscription"
-    subscriptionType => "Shared"
-    subscriptionInitialPosition => "Earliest"
+    subscription_name => "my_subscription"
+    subscription_type => "Shared"
+    subscription_initial_position => "Earliest"
     auth_plugin_class_name => "org.apache.pulsar.client.impl.auth.AuthenticationToken"
     auth_params => "token:${token}"
   }
@@ -71,13 +71,16 @@ input{
 
 # Installation
 
-1. Get the latest zip file from release page.
-   https://github.com/NiuBlibing/logstash-input-pulsar/releases
+1. Install with gem file
+```sh
+   wget https://github.com/NiuBlibing/logstash-input-pulsar/releases/download/vx.y.z.m/logstash-input-pulsar-x.y.z.m.gem
+bin/logstash-plugin install logstash-input-pulsar-x.y.z.m.gem
+```
 
-2. Install this plugin using logstash preoffline command.
+2. Install from rubygems
 
 ```
-bin/logstash-plugin install /{PATH_TO}/logstash-input-pulsar-x.y.z.m.gem
+bin/logstash-plugin install logstash-input-pulsar
 ```
 
 # Develop
