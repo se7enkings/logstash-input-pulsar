@@ -9,16 +9,17 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
 
   default :codec, 'plain'
 
-  config :service_url, :validate => :string
+  config :service_url, :validate => :string, :required => true
   config :auth_plugin_class_name, :validate => :string
-  config :auth_params, :validate => :string
+  config :auth_params, :validate => :password
 
-  config :topics, :validate => :array, :default => ["logstash"]
+  config :topics, :validate => :array, :default => ["topic-1"]
   config :topics_pattern, :validate => :string
 
-  config :group_id, :validate => :string, :default => "logstash-group"
+  config :subscription_name, :validate => :string, :default => "logstash-group"
   config :client_id, :validate => :string, :default => "logstash-client"
   config :subscription_type, :validate => :string, :default => "Shared"
+  config :subscription_initial_position, :validate => :string, :default => "Earliest"
   config :consumer_threads, :validate => :number, :default => 1
 
 
@@ -54,18 +55,16 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
     @runner_threads.each { |t| t.exit }
   end
 
-  public
-  def pulsar_consumers
-    @runner_consumers
-  end # 这个是什么用
-
   private
   def create_consumer(client_id)
     begin
       logger.info("client - ", :client => client_id)
       clientBuilder = org.apache.pulsar.client.api.PulsarClient.builder()
       clientBuilder.serviceUrl(@service_url)
-      clientBuilder.authentication(org.apache.pulsar.client.api.AuthenticationFactory.create(@auth_plugin_class_name,@auth_params))
+      if not @auth_plugin_class_name.nil? and not @auth_params.nil?
+        auth = org.apache.pulsar.client.api.AuthenticationFactory.create(@auth_plugin_class_name, @auth_params.value)
+        clientBuilder.authentication(auth)
+      end
       client = clientBuilder.build
       @runner_pulsar_clients.push(client)
 
@@ -83,11 +82,20 @@ class LogStash::Inputs::Pulsar < LogStash::Inputs::Base
         consumerBuilder.subscriptionType(subscriptionType::Exclusive)
       elsif @subscription_type == "Failover"
         consumerBuilder.subscriptionType(subscriptionType::Failover)
+      elsif @subscription_type == "Key_Shared"
+        consumerBuilder.subscriptionType(subscriptionType::Key_Shared)
       else
         consumerBuilder.subscriptionType(subscriptionType::Shared)
       end
 
-      consumer = consumerBuilder.subscriptionName(@group_id)
+      subscriptionInitialPositionType = org.apache.pulsar.client.api.SubscriptionInitialPosition
+      if @subscription_initial_position == "Latest"
+        consumerBuilder.subscriptionInitialPosition(subscriptionInitialPositionType::Latest)
+      else
+        consumerBuilder.subscriptionInitialPosition(subscriptionInitialPositionType::Earliest)
+      end
+
+      consumer = consumerBuilder.subscriptionName(@subscription_name)
         .consumerName(client_id)
         .subscribe();
 
