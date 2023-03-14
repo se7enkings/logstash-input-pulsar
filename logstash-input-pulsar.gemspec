@@ -1,12 +1,12 @@
 Gem::Specification.new do |s|
     s.name            = 'logstash-input-pulsar'
-    s.version         = '2.11.0.1'
+    s.version         = '2.11.0.2'
     s.licenses        = ['Apache-2.0']
     s.summary         = 'This input will read events from a pulsar topic.'
     s.description     = "This gem is a Logstash plugin required to be installed on top of the Logstash core pipeline using $LS_HOME/bin/logstash-plugin install gemname. This gem is not a stand-alone program"
-    s.authors         = ['ShiyiLiang']
-    s.email           = 'test'
-    s.homepage        = "https://github.com/se7enkings"
+    s.authors         = ['ShiyiLiang', 'Tianyue Ren']
+    s.email           = 'rentianyue-jk@360shuke.com'
+    s.homepage        = "https://github.com/NiuBlibing/logstash-input-pulsar"
     s.require_paths = ['lib']
   
     # Files
